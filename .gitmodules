@@ -1,0 +1,3 @@
+[submodule "src/include/cini"]
+	path = src/include/cini
+	url = https://github.com/Parser-Group/cini.git
