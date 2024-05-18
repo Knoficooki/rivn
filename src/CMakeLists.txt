@@ -36,3 +36,9 @@ source_group(TREE "${PROJECT_SOURCE_DIR}/${CLIENT_SOURCE_FOLDER}/" PREFIX "Heade
 
 set_target_properties(client_app PROPERTIES OUTPUT_NAME "${CLIENT_EXEC_NAME}")
 set_target_properties(client_app PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")
+
+set(BUILD_LIBS TRUE CACHE BOOL "Build the libraries.")
+
+if(${BUILD_LIBS})
+	add_subdirectory(libs)
+endif()
