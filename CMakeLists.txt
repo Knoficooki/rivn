@@ -78,9 +78,9 @@ set(RIVN_FILES)
 
 include(AddSources)
 
-add_sources(RIVN_FILES "./" c cpp cxx cc "c++" C)  # Source files
-add_sources(RIVN_FILES "./" h hpp hxx hh "h++" H inl)  # Header files
-add_sources(RIVN_FILES "./" tpp txx tcc)  # Template implementations
+add_sources(RIVN_FILES "src/" c cpp cxx cc "c++" C)  # Source files
+add_sources(RIVN_FILES "src/" h hpp hxx hh "h++" H inl)  # Header files
+add_sources(RIVN_FILES "src/" tpp txx tcc)  # Template implementations
 
 include_directories(include/)
 
@@ -96,7 +96,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
                             )
 
 # Organise the files in a source group
-source_group(TREE "${PROJECT_SOURCE_DIR}/" PREFIX "Files" FILES ${RIVN_FILES})
+source_group(TREE "${PROJECT_SOURCE_DIR}/src/" PREFIX "Files" FILES ${RIVN_FILES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY "${RIVN_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}"

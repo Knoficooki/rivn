@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
 			return 1;
 		}
 		std::cout << "\tConfiguration: \"" << configName << "\" = \"" << projectConfiguration << "\"\n";
+		configName.clear();
 	}
 
 
