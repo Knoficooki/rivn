@@ -1,9 +1,0 @@
-[lib]
-setup="${drive}/.config/action-config/setup.${libext}"
-
-
-[pathsetup]
-action="${setup}:addpathsfromfile"
-args="path-list.txt"
-dir="${drive}/Tools/"
-
