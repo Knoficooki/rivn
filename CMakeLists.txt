@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(rivn)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 # Exclude CMake files from appearing in IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -71,11 +71,12 @@ set_target_properties(lua PROPERTIES
 target_compile_definitions(lua PRIVATE $<$<CONFIG:Debug>:_DEBUG>)
 
 if(WIN32)
-    set_target_properties(lua PROPERTIES PREFIX "")
     set_target_properties(lua PROPERTIES IMPORT_PREFIX "")
+    target_compile_definitions(lua PRIVATE LUA_BUILD_AS_DLL)
 endif()
 
-target_compile_definitions(lua PRIVATE LUA_BUILD_AS_DLL)
+set_target_properties(lua PROPERTIES PREFIX "")
+
 
 include_directories(${LUA_DIR})
 
