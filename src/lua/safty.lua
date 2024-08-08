@@ -1,33 +1,14 @@
-greeting = "hello World of Lua!"
 
-print(greeting)
 
-function hello(argc, argv)
-	for i=0,argc do
-		print(argv)
-	end
+player = {}
+player["name"] = "John Doe"
+player["age"] = 30
+
+print(player["name"])
+print(player["age"])
+
+function add(a, b)
+	return a + b
 end
 
-hello(10, "Hello")
-
-player = {
-	"name" = "John Doe",
-	"age" = 42,
-	"isMale" = true,
-	"skills" = {
-		"lua" = {
-			"version" = "5.3.5"
-		},
-	}
-	"Family" = {
-		"parents" = {
-			"name" = "John",
-			"age" = 42
-		},
-		"children" = {
-			"name" = "Jane",
-			"age" = 7
-		},
-	}
-	"Level" = 20
-}
+print(add(1, 2))

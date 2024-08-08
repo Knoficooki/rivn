@@ -5,8 +5,7 @@
 #include <exception>
 #include <stdexcept>
 
-
-// #include <sol/sol.hpp>
+namespace fs = std::filesystem;
 
 #ifdef _DEBUG
 #define debugPrint(x) std::cout << x << '\n'
@@ -27,6 +26,22 @@ struct Project {
 Project configureProject(int argc, char** argv);
 
 void printUsage();
+
+
+std::ostream& operator<<(std::ostream& os, const ProjetConfiguration& config)
+{
+	os << "Project configuration:\n";
+	os << "\tName: " << config.projectName << '\n';
+	os << "\tPath: " << config.projectPath.string() << '\n';
+	os << "\tLua file: " << config.luaFileName << '\n';
+	os << "\tLua path: " << config.luaFilePath.string() << '\n';
+	os << "\tConfigurations:\n";
+	for (const auto& [key, value] : config.configurations) {
+		os << "\t\t" << key << " = " << value << '\n';
+	}
+	return os;
+}
+
 
 int main(int argc, char** argv) {
 	fs::path rivnPath = (fs::current_path() / argv[0]).parent_path().lexically_normal();

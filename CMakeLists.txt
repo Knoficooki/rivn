@@ -20,7 +20,7 @@ message(STATUS "Output directory: ${RIVN_OUTPUT_DIRECTORY}")
 
 # Thirdparty code
 set(THIRDPARTY_DIR "${PROJECT_SOURCE_DIR}/lib")
-include_directories(include)
+include_directories(include/)
 
 #
 # Lua Library
