@@ -1,14 +1,9 @@
+print(project.name)
+print(project.path)
 
 
-player = {}
-player["name"] = "John Doe"
-player["age"] = 30
-
-print(player["name"])
-print(player["age"])
-
-function add(a, b)
-	return a + b
+if project.configurations.level == nil then
+	print("No level")
+else
+	print("Level: " .. project.configurations.level)
 end
-
-print(add(1, 2))

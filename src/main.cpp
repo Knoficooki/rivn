@@ -2,8 +2,9 @@
 #include <filesystem>
 #include <vector>
 #include <unordered_map>
-#include <exception>
-#include <stdexcept>
+
+#define SOL_ALL_SAFETIES_ON 1
+#include <sol/sol.hpp>
 
 namespace fs = std::filesystem;
 
@@ -13,25 +14,20 @@ namespace fs = std::filesystem;
 #define debugPrint(x)
 #endif
 
-namespace fs = std::filesystem;
-
-struct Project {
-    std::string name;
-    std::string configName;
-    fs::path path;
-    fs::path configurePath;
-    std::unordered_map<std::string, std::string> configs;
-};
-
-Project configureProject(int argc, char** argv);
-
 void printUsage();
 
+struct Project {
+	std::string name;
+	std::string luaFileName;
+	fs::path luaFilePath;
+	fs::path projectPath;
+	std::unordered_map<std::string, std::string> configurations;
+};
 
-std::ostream& operator<<(std::ostream& os, const ProjetConfiguration& config)
+std::ostream& operator<<(std::ostream& os, const Project& config)
 {
 	os << "Project configuration:\n";
-	os << "\tName: " << config.projectName << '\n';
+	os << "\tName: " << config.name << '\n';
 	os << "\tPath: " << config.projectPath.string() << '\n';
 	os << "\tLua file: " << config.luaFileName << '\n';
 	os << "\tLua path: " << config.luaFilePath.string() << '\n';
@@ -42,83 +38,134 @@ std::ostream& operator<<(std::ostream& os, const ProjetConfiguration& config)
 	return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const sol::table& table) {
+	static size_t indent = 0;
+	indent++;
+	size_t i = 0;
+	for (i = 0; i < indent-1; i++)
+	{
+		os << "\t";
+	}
+	os << "{\n";
+	for (const auto& [key, value] : table) {
+		for (i = 0; i < indent; i++) {
+			os << "\t";
+		}
+		os << key << " = " << value << '\n';
+	}
+	for (i = 0; i < indent-1; i++)
+	{
+		os << "\t";
+	}
+	os << "}\n";
+	indent--;
+	return os;
+}
+
+ 
+Project configureProject(const fs::path& rivnPath, int argc, char** argv);
+
 
 int main(int argc, char** argv) {
 	fs::path rivnPath = (fs::current_path() / argv[0]).parent_path().lexically_normal();
-	debugPrint("\tRivn directory: " << rivnPath.generic_string());
 
-    Project project = configureProject(argc, argv);
-
+	debugPrint("\tRivn directory: " << rivnPath.string());
+	
 	try
 	{
-        std::cout << "Project Name: " << project.name << "\n";
+		Project project = configureProject(rivnPath, argc, argv);
+
+		debugPrint(project);
+
+		std::cout << "\n";
+
+
+		sol::state lua;
+		lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::string, sol::lib::table, sol::lib::utf8);
+		sol::load_result lua_file = lua.load_file(project.luaFilePath.string());
+		if (!lua_file.valid()) {
+			throw std::runtime_error("Error loading lua file \"" + project.luaFilePath.string() + "\"\n");
+		}
+
+		sol::table project_table = lua.create_named_table("project");
+		project_table["name"] = project.name;
+		project_table["path"] = project.projectPath.string();
+		project_table["configurations"] = lua.create_table();
+		for (const auto& [key, value] : project.configurations) {
+			project_table["configurations"][key] = value;
+		}
+		
+		lua_file();
+		
+		return 0;
 	}
 	catch (const std::runtime_error& e) {
-		std::cout << e.what() << '\n';
+		std::cout << "\nRuntime Error: " << e.what() << '\n';
 	}
 	catch (const std::exception& e) {
-		std::cout << e.what() << '\n';
+		std::cout << "\nError: " << e.what() << '\n';
 	}
 	catch (...) {
-		std::cout << "Unknown error" << '\n';
+		std::cout << "\nUnknown error" << '\n';
 	}
-    std::cout << "Press enter to continue... ";
-    std::flush(std::cout);
-    int c = getc(stdin);
+	std::cout << '\n';
+	printUsage();
 	return 0;
 }
 
 void printUsage()
 {
 	std::cout << "Usage: rivn <lua-file-name> <project-name> [<project-configuration> ...]\n";
-	std::cout << "Example: rivn cmake.lua my_cmake_project\n";
+	std::cout << "\tExample: rivn c new_c_project --cmake true --build-script false --lua true --compiler-flags \"-O3 -Wall -Wextra\"\n";
 	std::cout << "rivn will create a new project in the current directory with the name of <project-name>\n";
 	std::cout << "rivn will then call the lua script <lua-file-name> with the project information to configure the project\n";
 }
 
+Project configureProject(const fs::path& rivnPath, int argc, char** argv)
+{
+	Project project;
+	std::vector<std::string> args(argv, argv + argc);
 
-Project configureProject(int argc, char** argv) {
-    Project project;
+	if (args.size() < 3) {
+		throw std::runtime_error("Not enough arguments");
+	}
+	
+	const std::string luaFileName = args[1];
+	const std::string projectName = args[2];
+	std::vector<std::string> projectConfigurations;
+	if (args.size() > 3)
+	{
+		projectConfigurations = std::vector(args.begin() + 3, args.end());
+	}
 
-    std::vector<std::string> args(argv, argv + argc);
-    if (args.size() < 3) {
-        throw std::runtime_exception("Not enouth arguments");
-    }
+	std::string configName;
+	for (const auto& projectConf : projectConfigurations) {
+		if (projectConf.starts_with("--") && projectConf.size() > 2) {
+			if (!configName.empty()) {
+				project.configurations[configName] = "ON";
+				configName = projectConf.substr(2);
+			}
+			configName = projectConf.substr(2);
+			continue;
+		}
 
-    const std::string luaFileName = args[1];
-    const std::string projectName = args[2];
-    std::vector<std::string> projectConfigurations;
-    if (args.size() > 3)
-    {
-        projectConfigurations = std::vector(args.begin() + 3, args.end());
-    }
+		if (configName.empty()) {
+			throw std::runtime_error("Unexpected argument \"" + projectConf + "\"\n");
+		}
+		debugPrint("\tConfiguration: \"" << configName << "\" = \"" << projectConf << "\"");
+		project.configurations[configName] = projectConf;
+		configName.clear();
+	}
 
-    std::string configName;
-    for (const auto& projectConfiguration : projectConfigurations) {
-        if (projectConfiguration.starts_with("--") && projectConfiguration.size() > 2) {
-            if (!configName.empty()) {
-                project.config[configName] = "";
-                configName = projectConfiguration;
-            }
-            configName = projectConfiguration.substr(2);
-            continue;
-        }
+	fs::path luaFilePath = rivnPath / "lua" / (luaFileName + ".lua");
 
-        if (configName.empty()) {
-            std::runtime_exception("Unexpected argument \"" + projectConfiguration + "\"\n");
-        }
-        debugPrint("\tConfiguration: \"" << configName << "\" = \"" << projectConfiguration << "\"");
-        project.config[configName] = projectConfiguration;
-        configName.clear();
-    }
+	if (!exists(luaFilePath)) {
+		throw std::runtime_error("Lua file \"" + luaFilePath.string() + "\" does not exist");
+	}
 
-    fs::path luaFilePath = rivnPath / "lua" / (luaFileName + ".lua");
-
-    if (!exists(luaFilePath)) {
-        std::cout << "\tError: Lua file \"" << luaFilePath << "\" does not exist\n";
-        return 1;
-    }
-
-    return project;
+	project.luaFilePath = luaFilePath;
+	project.luaFileName = luaFileName;
+	project.projectPath = (fs::current_path() / projectName).lexically_normal();
+	project.name = projectName;
+	return project;
 }
-
