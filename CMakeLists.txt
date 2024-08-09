@@ -105,13 +105,6 @@ add_executable(${PROJECT_NAME}
 target_link_directories(${PROJECT_NAME} PRIVATE "${RIVN_OUTPUT_DIRECTORY}/")
 target_link_libraries(${PROJECT_NAME} lua)
 
-set(DevBuild ON CACHE BOOL "Build for developers")
-
-if(${DevBuild})
-    target_compile_definitions(${PROJECT_NAME} PUBLIC DevBuild)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC DEV_LUA_PATH="${CMAKE_SOURCE_DIR}/src/")
-endif()
-
 target_compile_definitions(${PROJECT_NAME} PRIVATE
                                 $<$<CONFIG:Debug>:_DEBUG>
                             )
@@ -125,8 +118,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # Copy Lua files
 #
 
-if(NOT ${DevBuild})
-# Custom target to copy Lua files
 # Custom target to copy Lua files
 set(LUA_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/lua")
 set(LUA_OUTPUT_DIRECTORY "${RIVN_OUTPUT_DIRECTORY}/lua")
@@ -137,24 +128,31 @@ message(STATUS "Lua output directory: ${LUA_OUTPUT_DIRECTORY}")
 file(GLOB_RECURSE RIVN_LUA_FILES RELATIVE "${LUA_SOURCE_DIRECTORY}" "${LUA_SOURCE_DIRECTORY}/*.lua")
 message(STATUS "Lua files: ${RIVN_LUA_FILES}")
 
-# Create a list of full paths for source Lua files
+# Create a list of full paths for source and destination Lua files
 set(RIVN_LUA_SOURCE_FILES)
+set(RIVN_LUA_OUTPUT_FILES)
 foreach(lua_file ${RIVN_LUA_FILES})
     list(APPEND RIVN_LUA_SOURCE_FILES "${LUA_SOURCE_DIRECTORY}/${lua_file}")
+    list(APPEND RIVN_LUA_OUTPUT_FILES "${LUA_OUTPUT_DIRECTORY}/${lua_file}")
 endforeach()
 
+# Custom command to copy Lua files
 add_custom_command(
-    TARGET ${PROJECT_NAME}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying Lua files..."
+    OUTPUT ${RIVN_LUA_OUTPUT_FILES}
     COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_OUTPUT_DIRECTORY}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${RIVN_LUA_FILES}
+        ${RIVN_LUA_SOURCE_FILES}
         "${LUA_OUTPUT_DIRECTORY}"
-    WORKING_DIRECTORY "${LUA_SOURCE_DIRECTORY}"
+    DEPENDS ${RIVN_LUA_SOURCE_FILES}
     COMMENT "Copying Lua files to ${LUA_OUTPUT_DIRECTORY}"
+    VERBATIM
 )
-endif()
+
+# Custom target that depends on the copied files
+add_custom_target(copy_lua_files ALL
+    DEPENDS ${RIVN_LUA_OUTPUT_FILES}
+)
+
 
 ##
 ## RIVN-LUA
@@ -166,7 +164,7 @@ set(CT_LUA_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/lua")
 file(GLOB_RECURSE CT_RIVN_LUA_FILES "${CT_LUA_SOURCE_DIRECTORY}/*.lua")
 
 # Create a custom target for Lua files
-add_custom_target(rivn-lua
+add_custom_target(rivn-modules
     SOURCES ${CT_RIVN_LUA_FILES}
 )
 
@@ -179,4 +177,3 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src/lua" PREFIX "Lua Files" FILES
 
 # For your main project files, be explicit about which files to include
 source_group(TREE "${PROJECT_SOURCE_DIR}/src" PREFIX "Source Files" FILES ${RIVN_FILES})
-

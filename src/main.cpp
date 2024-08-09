@@ -65,20 +65,10 @@ std::ostream& operator<<(std::ostream& os, const sol::table& table) {
  
 Project configureProject(const fs::path& rivnPath, const fs::path& luaModules, int argc, char** argv);
 
-#ifdef DevBuild
-#define LUA_MODULES DEV_LUA_PATH
-#else
-
-#endif
-
 int main(int argc, char** argv) {
 	fs::path rivnPath = (fs::current_path() / argv[0]).parent_path().lexically_normal();
-    fs::path luaModules = 
-#ifdef DevBuild
-    fs::path(LUA_MODULES) / "lua";
-#else
-    rivnPath / "lua";
-#endif
+    fs::path luaModules = rivnPath / "lua";
+	
 	debugPrint("\tRivn directory: " << rivnPath.string());
     debugPrint("\tLua modules directory: " << luaModules.string());
 
@@ -107,6 +97,8 @@ int main(int argc, char** argv) {
 		}
 		
 		lua_file();
+
+		int c = getc(stdin);
 		
 		return 0;
 	}
