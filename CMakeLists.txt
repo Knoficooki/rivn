@@ -99,24 +99,33 @@ add_sources(RIVN_FILES "src/" tpp txx tcc)  # Template implementations
 include_directories(include/)
 
 add_executable(${PROJECT_NAME}
-    ${RIVN_FILES} 
+    ${RIVN_FILES}
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE "${RIVN_OUTPUT_DIRECTORY}/")
 target_link_libraries(${PROJECT_NAME} lua)
 
+set(DevBuild ON CACHE BOOL "Build for developers")
+
+if(${DevBuild})
+    target_compile_definitions(${PROJECT_NAME} PUBLIC DevBuild)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC DEV_LUA_PATH="${CMAKE_SOURCE_DIR}/src/")
+endif()
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE
                                 $<$<CONFIG:Debug>:_DEBUG>
                             )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES 
+set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${RIVN_OUTPUT_DIRECTORY}/"
 )
+
 
 #
 # Copy Lua files
 #
 
+if(NOT ${DevBuild})
 # Custom target to copy Lua files
 # Custom target to copy Lua files
 set(LUA_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/lua")
@@ -145,6 +154,7 @@ add_custom_command(
     WORKING_DIRECTORY "${LUA_SOURCE_DIRECTORY}"
     COMMENT "Copying Lua files to ${LUA_OUTPUT_DIRECTORY}"
 )
+endif()
 
 ##
 ## RIVN-LUA

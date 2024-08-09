@@ -63,17 +63,28 @@ std::ostream& operator<<(std::ostream& os, const sol::table& table) {
 }
 
  
-Project configureProject(const fs::path& rivnPath, int argc, char** argv);
+Project configureProject(const fs::path& rivnPath, const fs::path& luaModules, int argc, char** argv);
 
+#ifdef DevBuild
+#define LUA_MODULES DEV_LUA_PATH
+#else
+
+#endif
 
 int main(int argc, char** argv) {
 	fs::path rivnPath = (fs::current_path() / argv[0]).parent_path().lexically_normal();
-
+    fs::path luaModules = 
+#ifdef DevBuild
+    fs::path(LUA_MODULES) / "lua";
+#else
+    rivnPath / "lua";
+#endif
 	debugPrint("\tRivn directory: " << rivnPath.string());
-	
+    debugPrint("\tLua modules directory: " << luaModules.string());
+
 	try
 	{
-		Project project = configureProject(rivnPath, argc, argv);
+		Project project = configureProject(rivnPath, luaModules, argc, argv);
 
 		debugPrint(project);
 
@@ -121,7 +132,7 @@ void printUsage()
 	std::cout << "rivn will then call the lua script <lua-file-name> with the project information to configure the project\n";
 }
 
-Project configureProject(const fs::path& rivnPath, int argc, char** argv)
+Project configureProject(const fs::path& rivnPath, const fs::path& luaModules, int argc, char** argv)
 {
 	Project project;
 	std::vector<std::string> args(argv, argv + argc);
@@ -157,7 +168,7 @@ Project configureProject(const fs::path& rivnPath, int argc, char** argv)
 		configName.clear();
 	}
 
-	fs::path luaFilePath = rivnPath / "lua" / (luaFileName + ".lua");
+	fs::path luaFilePath = luaModules / (luaFileName + ".lua");
 
 	if (!exists(luaFilePath)) {
 		throw std::runtime_error("Lua file \"" + luaFilePath.string() + "\" does not exist");
