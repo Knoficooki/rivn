@@ -114,66 +114,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 
-#
-# Copy Lua files
-#
-
-# Custom target to copy Lua files
-set(LUA_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/lua")
-set(LUA_OUTPUT_DIRECTORY "${RIVN_OUTPUT_DIRECTORY}/lua")
-
-message(STATUS "Lua source directory: ${LUA_SOURCE_DIRECTORY}")
-message(STATUS "Lua output directory: ${LUA_OUTPUT_DIRECTORY}")
-
-file(GLOB_RECURSE RIVN_LUA_FILES RELATIVE "${LUA_SOURCE_DIRECTORY}" "${LUA_SOURCE_DIRECTORY}/*.lua")
-message(STATUS "Lua files: ${RIVN_LUA_FILES}")
-
-# Create a list of full paths for source and destination Lua files
-set(RIVN_LUA_SOURCE_FILES)
-set(RIVN_LUA_OUTPUT_FILES)
-foreach(lua_file ${RIVN_LUA_FILES})
-    list(APPEND RIVN_LUA_SOURCE_FILES "${LUA_SOURCE_DIRECTORY}/${lua_file}")
-    list(APPEND RIVN_LUA_OUTPUT_FILES "${LUA_OUTPUT_DIRECTORY}/${lua_file}")
-endforeach()
-
-# Custom command to copy Lua files
-add_custom_command(
-    OUTPUT ${RIVN_LUA_OUTPUT_FILES}
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${LUA_OUTPUT_DIRECTORY}"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${RIVN_LUA_SOURCE_FILES}
-        "${LUA_OUTPUT_DIRECTORY}"
-    DEPENDS ${RIVN_LUA_SOURCE_FILES}
-    COMMENT "Copying Lua files to ${LUA_OUTPUT_DIRECTORY}"
-    VERBATIM
-)
-
-# Custom target that depends on the copied files
-add_custom_target(copy_lua_files ALL
-    DEPENDS ${RIVN_LUA_OUTPUT_FILES}
-)
-
-
 ##
 ## RIVN-LUA
 ##
-# Define the source directory for Lua files
-set(CT_LUA_SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/lua")
-
-# Find all Lua files in the source directory
-file(GLOB_RECURSE CT_RIVN_LUA_FILES "${CT_LUA_SOURCE_DIRECTORY}/*.lua")
-
-# Create a custom target for Lua files
-add_custom_target(rivn-modules
-    SOURCES ${CT_RIVN_LUA_FILES}
-)
-
-# Organize Lua files in the IDE
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src/lua" PREFIX "Lua Files" FILES ${CT_RIVN_LUA_FILES})
-
-#
-# Organizing files in source groups
-#
+add_subdirectory(src/lua/)
 
 # For your main project files, be explicit about which files to include
 source_group(TREE "${PROJECT_SOURCE_DIR}/src" PREFIX "Source Files" FILES ${RIVN_FILES})

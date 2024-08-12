@@ -36,3 +36,5 @@ bin/
 .vs/
 .vscode/
 .idea/
+
+testing/
