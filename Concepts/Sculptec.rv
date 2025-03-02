@@ -1,17 +1,36 @@
 
-using ui as std.ui;
-
-class some<T : class> {
-
-}
+use ui as std.ui;
 
 module std.ui {
-    interface Scene {
-        var body : some<View>;
+    type NativeWindow = pointer<void>
+    struct Window {
+        private native : NativeWindow
+        var size : Vector2<uint32>
+        var position : Vector2<uint32> {
+            getWindowPosition(native) // is the only statement in a dynamic variable; return automaticaly assumed
+        }
+
+        init() {
+            size = getWindowSize(native);
+        }
+
+        // extern tells the compiler not to look for the signature in any module. But the  linker should find it in an external library(static)
+        // if it is not "extern" but "extern_dynamic" then the function should exist in a shared library that the program can access;
+        // extern_dynamic("std.ui.so", "getWindowPosition")
+        // "std.ui.so" == "root://std.ui.so"
+        private Vector2<uint32> getWindowPosition(_ wnd: NativeWindow) -> extern("getWindowPosition");
+        private Vector2<uint32> getWindowSize(_ wnd: NativeWindow) -> extern("getWindowSize");
+
+
     }
 
-    struct SceneCollection : Scene {
-        var scenes : some<Scene>
+    struct WindowGroup {
+        var windows : [Window]
+        init(_ contents: [some View]) {
+            foreach _ in contents { view in
+                windows.append(.init(view));
+            }
+        }
     }
 
     interface App {
@@ -20,10 +39,8 @@ module std.ui {
 }
 
 @main
-ui.App Sculptec {
-    var body : some<ui.Scene> { // declares the body of the App; Type: "Scene"
-        ui.WindowGroup {
-            MainView()
-        }
+struct Sculptec : ui.App {
+    var windows : WindowGroup { // declares the body of the App; Type: "Scene"
+        MainView()
     }
 }

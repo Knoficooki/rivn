@@ -1,9 +1,10 @@
 
 ui.View InfoPage {
-body: // declares the body of the View; Type: "some View"
-    ui.VStack {
-        ui.Image(systemImage: "globe"); Text "Hello World";
-        ui.Spacer;
-        ui.Text("This is an App written with rivn.ui");
+    var body: some View { // declares the body of the View; Type: "some View"
+        ui.VStack {
+            ui.Image(systemImage: "globe"); Text "Hello World";
+            ui.Spacer;
+           ui.Text("This is an App written with rivn.ui");
+        }
     }
 }

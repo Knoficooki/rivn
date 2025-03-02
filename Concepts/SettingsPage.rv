@@ -1,7 +1,8 @@
-include rivn as rv
 
-ui.View Settings {
-    @State INIData settings; // rebuilds the body when a state changes
+use std.ui; // if not used as "use ... as ..." alows to remove the namespace prefix for the used namesoace. (check for overlapping)
+
+struct SettingsView : View {
+    @State var settings : INIData; // rebuilds the body when a state changes
 
     init { // will be called on construction
         settings.load(filepath: "root://settings.ini");
@@ -14,20 +15,21 @@ ui.View Settings {
              */
     }
 
-body:
-    ui.Form{
-        foreach(var section: $settings){
-            ui.Section(title: section.$name) {
-                foreach(var key: section) {
-                    ui.HStack {
-                        ui.Text key.$name;
-                        ui.Input(type: key.type, data: key.$data)
-                            .alignment(.tailing) // sets the object in the HStack to the far right
-                    }.swipe(rightHandSide: {
-                            ui.Button(name: "Delete", systemImage: "trash.fill") {
+    var body: some View {
+        Form{
+            foreach(var section: $settings){
+                Section(title: section.$name) {
+                    foreach(var key: section) {
+                        HStack {
+                            Text key.$name;
+                            Input(type: key.type, data: key.$data)
+                                .alignment(.tailing) // sets the object in the HStack to the far right
+                        }.swipe(rightHandSide: {
+                            Button(name: "Delete", systemImage: "trash.fill") {
                                 section.remove(key);
                             }
                         })
+                    }
                 }
             }
         }

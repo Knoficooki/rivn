@@ -1,15 +1,18 @@
-import rivn.ui as rv;
+use ui as std.ui;
 
-rv.View MainView {
-body:
-    TabView {
-        InfoPage
+struct MainView : View {
+    var body: some View {
+        TabView {
+            InfoPage
             .tabitem(name: "Info")  // if the bounds are too small the default systemImage will be displayed
-                                    // default systemImage: "globe"
-        Settings
+            // default systemImage: "globe"
+
+            SettingsView
             .tabitem(label: {
                 Label(text: "Settings", systemImage: "gear.fill")
             })
-        InfoPage // gets a default name "Tab \{x}" -> "Tab 3"
+
+            InfoPage // gets a default name "Tab \{x}" -> "Tab 3"
+        }
     }
 }
