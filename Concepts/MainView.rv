@@ -1,0 +1,15 @@
+import rivn.ui as rv;
+
+rv.View MainView {
+body:
+    TabView {
+        InfoPage
+            .tabitem(name: "Info")  // if the bounds are too small the default systemImage will be displayed
+                                    // default systemImage: "globe"
+        Settings
+            .tabitem(label: {
+                Label(text: "Settings", systemImage: "gear.fill")
+            })
+        InfoPage // gets a default name "Tab \{x}" -> "Tab 3"
+    }
+}

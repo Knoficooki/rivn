@@ -1,0 +1,29 @@
+
+using ui as std.ui;
+
+class some<T : class> {
+
+}
+
+module std.ui {
+    interface Scene {
+        var body : some<View>;
+    }
+
+    struct SceneCollection : Scene {
+        var scenes : some<Scene>
+    }
+
+    interface App {
+        var body : some<Scene>;
+    }
+}
+
+@main
+ui.App Sculptec {
+    var body : some<ui.Scene> { // declares the body of the App; Type: "Scene"
+        ui.WindowGroup {
+            MainView()
+        }
+    }
+}

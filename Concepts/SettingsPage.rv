@@ -1,0 +1,35 @@
+include rivn as rv
+
+ui.View Settings {
+    @State INIData settings; // rebuilds the body when a state changes
+
+    init { // will be called on construction
+        settings.load(filepath: "root://settings.ini");
+            /*
+             * "root://" will be dereferenced to the location of the executable or
+             * a given install path (for secure operating systems and users).
+             *
+             * You will not be able to just access any file on the system.
+             *      (only if build for a embedded system)
+             */
+    }
+
+body:
+    ui.Form{
+        foreach(var section: $settings){
+            ui.Section(title: section.$name) {
+                foreach(var key: section) {
+                    ui.HStack {
+                        ui.Text key.$name;
+                        ui.Input(type: key.type, data: key.$data)
+                            .alignment(.tailing) // sets the object in the HStack to the far right
+                    }.swipe(rightHandSide: {
+                            ui.Button(name: "Delete", systemImage: "trash.fill") {
+                                section.remove(key);
+                            }
+                        })
+                }
+            }
+        }
+    }
+}
